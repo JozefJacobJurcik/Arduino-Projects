@@ -18,7 +18,9 @@
 #include "thingProperties.h"
 #include "Menu.h"
 #define LED_PIN 32
+const int pin = 34;
 Menu m = Menu(0);
+
 
 
 void setup() {
@@ -51,6 +53,11 @@ void setup() {
 void loop() {
   ArduinoCloud.update();
   // Your code here 
+  int result = analogRead(pin);
+  Serial.println(result);
+  delay(500);
+
+  
   
   
 }
@@ -81,7 +88,15 @@ void onMessageChange()  {
   } else {
     m.check(message);
   }
-  
-  
-  
+
+} 
+
+void switchLed(bool switchOn){
+  if(switchOn){
+    digitalWrite(LED_PIN, HIGH);
+  } else {
+    digitalWrite(LED_PIN, LOW);
+  }
 }
+  
+
