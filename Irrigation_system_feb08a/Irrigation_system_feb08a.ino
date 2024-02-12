@@ -17,8 +17,12 @@
 
 #include "thingProperties.h"
 #include "Menu.h"
+
+#include "NTPClient.h"
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600, 600000);
+
 #define LED_PIN 32
-const int pin = 34;
 Menu m = Menu(0);
 
 
@@ -46,6 +50,8 @@ void setup() {
  */
   setDebugMessageLevel(2);
   ArduinoCloud.printDebugInfo();
+
+
   
   
 }
@@ -53,10 +59,6 @@ void setup() {
 void loop() {
   ArduinoCloud.update();
   // Your code here 
-  int result = analogRead(pin);
-  Serial.println(result);
-  delay(500);
-
   
   
   
@@ -82,7 +84,9 @@ void onLedChange()  {
 */
 
 void onMessageChange()  {
-  // Add your code here to act upon Message change
+  
+  timeClient.update();
+  
   if (m.getReplyReadyStatus()){
     message = m.getReply() ;
   } else {
@@ -90,6 +94,11 @@ void onMessageChange()  {
   }
 
 } 
+
+String getCurrentTime(){
+  timeClient.update();
+  return timeClient.getFormattedTime();
+}
 
 void switchLed(bool switchOn){
   if(switchOn){
