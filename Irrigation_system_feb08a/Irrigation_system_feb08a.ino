@@ -17,13 +17,21 @@
 
 #include "thingProperties.h"
 #include "Menu.h"
+#include "Plant.h"
 
 #include "NTPClient.h"
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600, 600000);
 
 #define LED_PIN 32
-Menu m = Menu(0);
+
+
+Plant p1 = Plant(1);
+Plant p2 = Plant(2);
+
+Menu menu = Menu(0);
+
+
 
 
 
@@ -87,10 +95,10 @@ void onMessageChange()  {
   
   timeClient.update();
   
-  if (m.getReplyReadyStatus()){
-    message = m.getReply() ;
+  if (menu.getReplyReadyStatus()){
+    message = menu.getReply() ;
   } else {
-    m.check(message);
+    menu.check(message);
   }
 
 } 

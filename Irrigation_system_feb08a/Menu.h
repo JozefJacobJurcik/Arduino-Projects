@@ -14,6 +14,8 @@ class Menu {
     int status;
     bool replyReady;
     String reply;
+    int selectedPlant;
+    
     
 };
 
