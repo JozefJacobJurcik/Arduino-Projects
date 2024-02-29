@@ -19,6 +19,8 @@
 #include "Menu.h"
 #include "Plant.h"
 #include "time.h"
+#include "TimeLib.h"
+#include "sntp.h"
 
 
 #define LED_PIN 23
@@ -28,7 +30,11 @@
 #define R1_PIN 25
 #define R2_PIN 27
 
+//------------------------------------------ temp
+int temp = 30;
+//------------------------------------------
 
+//objects
 Plant p1 = Plant(1);
 Plant p2 = Plant(2);
 
@@ -37,14 +43,15 @@ Menu menu = Menu(0);
 
 
 
-
 void setup() {
-  pinMode(LED_PIN, OUTPUT);
   
   // Initialize serial and wait for port to open:
   Serial.begin(9600);
   // This delay gives the chance to wait for a Serial Monitor without blocking if none is found
   delay(1500); 
+
+
+  
 
   // Defined in thingProperties.h
   initProperties();
@@ -62,15 +69,36 @@ void setup() {
   setDebugMessageLevel(2);
   ArduinoCloud.printDebugInfo();
 
+  //time setup
+  
+  
+
+
   pinMode(25, OUTPUT);
   pinMode(27, OUTPUT);
-  
+  pinMode(LED_PIN, OUTPUT);
   
 }
 
 void loop() {
   ArduinoCloud.update();
   // Your code here 
+  
+  if(ArduinoCloud.connected() && (temp>0)){
+
+    time_t unixTime = ArduinoCloud.getLocalTime(); // Unix timestamp
+    setTime(unixTime);
+    temp--;
+    
+    }
+
+  Serial.println(" ");
+  Serial.print(hour());
+  Serial.print(":");
+  Serial.print(minute());
+  Serial.print(":");
+  Serial.print(second());
+
   
   /*
   int valueOne = analogRead(35); // read the analog value from sensor
@@ -90,7 +118,7 @@ void loop() {
   }
   */
 
-  delay(500);
+  delay(1000);
   
   
   
@@ -116,9 +144,7 @@ void onLedChange()  {
 */
 
 void onMessageChange()  {
-  
-  
-  
+
   if (menu.getReplyReadyStatus()){
     message = menu.getReply() ;
   } else {
@@ -128,7 +154,6 @@ void onMessageChange()  {
 } 
 
 
-
 void switchLed(bool switchOn){
   if(switchOn){
     digitalWrite(LED_PIN, HIGH);
@@ -136,5 +161,6 @@ void switchLed(bool switchOn){
     digitalWrite(LED_PIN, LOW);
   }
 }
-  
+
+
 
