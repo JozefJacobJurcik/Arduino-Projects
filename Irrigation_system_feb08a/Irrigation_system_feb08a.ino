@@ -18,12 +18,15 @@
 #include "thingProperties.h"
 #include "Menu.h"
 #include "Plant.h"
+#include "time.h"
 
-#include "NTPClient.h"
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600, 600000);
 
-#define LED_PIN 32
+#define LED_PIN 23
+#define M1_PIN 34
+#define M2_PIN 35
+#define SWITCH_PIN 32
+#define R1_PIN 25
+#define R2_PIN 27
 
 
 Plant p1 = Plant(1);
@@ -59,7 +62,8 @@ void setup() {
   setDebugMessageLevel(2);
   ArduinoCloud.printDebugInfo();
 
-
+  pinMode(25, OUTPUT);
+  pinMode(27, OUTPUT);
   
   
 }
@@ -67,6 +71,26 @@ void setup() {
 void loop() {
   ArduinoCloud.update();
   // Your code here 
+  
+  /*
+  int valueOne = analogRead(35); // read the analog value from sensor
+  int valueTwo = analogRead(34);
+  int valueSwitch = digitalRead(32);
+
+  Serial.println(valueOne);
+  Serial.println(valueSwitch);
+  Serial.println(valueTwo);
+
+  if (valueSwitch == HIGH){
+    digitalWrite(25, HIGH);
+    digitalWrite(27, LOW);
+  } else {
+    digitalWrite(27, HIGH);
+    digitalWrite(25, LOW);
+  }
+  */
+
+  delay(500);
   
   
   
@@ -93,7 +117,7 @@ void onLedChange()  {
 
 void onMessageChange()  {
   
-  timeClient.update();
+  
   
   if (menu.getReplyReadyStatus()){
     message = menu.getReply() ;
@@ -103,10 +127,7 @@ void onMessageChange()  {
 
 } 
 
-String getCurrentTime(){
-  timeClient.update();
-  return timeClient.getFormattedTime();
-}
+
 
 void switchLed(bool switchOn){
   if(switchOn){

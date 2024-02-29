@@ -3,7 +3,6 @@
 
 extern void onMessageChange();
 extern void switchLed(bool switchOn);
-extern String getCurrentTime();
 extern Plant p1;
 extern Plant p2;
 int d,h,m,p,t,numValues;
@@ -57,9 +56,7 @@ void Menu::check(String userIn) {
       // because switch with a String doesnt work in c++ for some reason and im not bothered to do it with vectors
       if (userIn == "time") {
        
-        printAnswer("Updating... Current time: " + getCurrentTime());
-        status = 0;
-        onMessageChange();
+        //todo replace with settings
 
       }else if (userIn == "volume") {
         reply = "Change amount of water for '";
@@ -104,7 +101,7 @@ void Menu::check(String userIn) {
     case 2:
       if (userIn == p1.getName()){
         selectedPlant = 1;
-        printAnswer("Water when:\ntimer runs out - 'timer'\nmoisture is reached - 'moisture'\ntimer runs out after a moisture is reached - 'hybrid'\nwhat comes first misture or timer - 'both'\n'back' to go back");
+        printAnswer("Water when:\ntimer runs out - 'timer'\nmoisture is reached - 'moisture'\ntimer runs out after a moisture is reached - 'hybrid'\nwhat comes first misture or timer - 'both'\nevery x days at a specified time - 'schedule' \n'back' to go back");
         status = 21;
 
 
@@ -138,8 +135,12 @@ void Menu::check(String userIn) {
         status = 213;
         
       }else if (userIn == "both"){
-        printAnswer("Set a timer and moisture treshold, whatever comes first will water the plantType it in this format:\n{moisture % - from 1 to 100}p{number of days}d{hours}h{minutes}m \n e.g. : 35p0d2h30m");
+        printAnswer("Set a timer and moisture treshold, whatever comes first will water the plant\nType it in this format:\n{moisture % - from 1 to 100}p{number of days}d{hours}h{minutes}m \n e.g. : 35p0d2h30m");
         status = 214;
+        
+      }else if (userIn == "schedule"){
+        printAnswer("Set what hour and every how many days the plant should be watered. \nType it in this format:\{every how many days}d{at this hour}h{minutes}m \n e.g. every 5 days at 15:30:\n 5d15h30m ");
+        status = 215;
         
       }else if (userIn == "back"){
         status = 0;
@@ -287,6 +288,39 @@ void Menu::check(String userIn) {
         onMessageChange();
       }
 
+    break;
+      
+
+    case 215:
+      numValues = sscanf(userIn.c_str(), "%dd%dh%dm", &d, &h, &m);
+      
+      if (numValues == 3){
+        if (selectedPlant == 1){
+          p1.setModeSchedule(d,h,m);
+
+        } else if (selectedPlant == 2){
+          p2.setModeSchedule(d,h,m);
+
+        } else {
+          printAnswer(" error in 215, exiting..");
+          status = 0;
+          onMessageChange();
+        }
+      
+      reply = "Plant will be watered every ";
+      reply += String(d);
+      reply += " days at ";
+      reply += String(h);
+      reply += ":";
+      reply += String(m);
+      printAnswer(reply);
+      status = 0;
+
+      } else {
+        printAnswer("wrong format could not set schedule, exiting...");
+        status = 0;
+        onMessageChange();
+      }
     break;
 
     //reply after selecting to water now and selecting a plant

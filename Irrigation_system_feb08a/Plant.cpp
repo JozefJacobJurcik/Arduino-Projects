@@ -30,6 +30,10 @@ void Plant::setModeBoth(int p, int d, int h, int m){
   //todo
 }
 
+void Plant::setModeSchedule(int d, int h, int m){
+  //todo
+}
+
 void Plant::setWaterByP(int p){
   //todo
 }

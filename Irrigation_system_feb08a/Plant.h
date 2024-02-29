@@ -18,6 +18,7 @@ class Plant {
     void setModeMoisture(int m);
     void setModeHybrid(int p, int d, int h, int m);
     void setModeBoth(int p, int d, int h, int m);
+    void setModeSchedule(int d, int h, int m);
     void setWaterByP(int p);
     void setWaterByT(int t);
     String getMode();
