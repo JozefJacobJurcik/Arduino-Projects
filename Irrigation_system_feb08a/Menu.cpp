@@ -1,7 +1,9 @@
 #include "Menu.h"
 #include "Plant.h"
+#include "TimeLib.h"
 
 extern void onMessageChange();
+extern void updateTime();
 extern void switchLed(bool switchOn);
 extern Plant p1;
 extern Plant p2;
@@ -40,7 +42,7 @@ void Menu::check(String userIn) {
 
     // default menu
     case 0:
-      printAnswer("Menu type:\n'time' to update the time.\n'volume' to set how much water each plant should get\n'mode' to switch between modes\n'now' to water a plant manually right now\n'rename' to rename the plants");
+      printAnswer("Menu type:\n'settings' to show additional settings\n'volume' to set how much water each plant should get\n'mode' to switch between modes\n'now' to water a plant manually right now\n'rename' to rename the plants");
       status = 1;
       d = 0;
       h = 0;
@@ -54,9 +56,9 @@ void Menu::check(String userIn) {
     case 1:
 
       // because switch with a String doesnt work in c++ for some reason and im not bothered to do it with vectors
-      if (userIn == "time") {
-       
-        //todo replace with settings
+      if (userIn == "settings") {
+        printAnswer("Type:\n'time' to set the current time\n'calibrate' to calibrate the moisture sensors\n'bedtime' to set a do-not-water time period\nOr type 'back' to go back.");
+        status = 6; 
 
       }else if (userIn == "volume") {
         reply = "Change amount of water for '";
@@ -434,10 +436,10 @@ void Menu::check(String userIn) {
 
       if (0 < p < 101){ 
         if (selectedPlant == 1) {
-          p1.isWaterByT = false;
+          p1.isWateredByT = false;
           p1.setWaterByP(p);
         } else if (selectedPlant == 2) {
-          p2.isWaterByT = false;
+          p2.isWateredByT = false;
           p2.setWaterByP(p);
         } else {
           printAnswer("error in 511, exiting...");
@@ -458,10 +460,10 @@ void Menu::check(String userIn) {
 
       if (0 < t < 61){ 
         if (selectedPlant == 1) {
-          p1.isWaterByT = true;
+          p1.isWateredByT = true;
           p1.setWaterByT(t);
         } else if (selectedPlant == 2) {
-          p2.isWaterByT = true;
+          p2.isWateredByT = true;
           p2.setWaterByT(t);
         } else {
           printAnswer("error in 512, exiting...");
@@ -475,8 +477,34 @@ void Menu::check(String userIn) {
       }
     break;
     
+    case 6:
+      if (userIn == "time"){
+        updateTime();
+        delay(1000);
+        reply = "Time was set to: ";
+        reply += String(hour());
+        reply += ":" ;
+        reply += String(minute());
+        reply += " ... type anything to go back tomenu" ;
+        printAnswer(reply);
+        status = 0;
+        
 
-// todo case settings for calibrating time calibrating moisture sensors and set a time that plants should not be watered
+      }else if (userIn == "calibrate"){
+        //todo
+
+      }else if (userIn == "bedtime"){
+        //todo
+
+      }else if (userIn == "back"){
+        status = 0;
+        onMessageChange();
+
+      } else {
+        printAnswer("Hmm...try again...");
+      }
+    break;
+
 
 
      

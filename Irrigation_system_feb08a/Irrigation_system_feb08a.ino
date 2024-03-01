@@ -23,20 +23,20 @@
 #include "sntp.h"
 
 
-#define LED_PIN 23
-#define M1_PIN 34
-#define M2_PIN 35
-#define SWITCH_PIN 32
-#define R1_PIN 25
-#define R2_PIN 27
+const int LED_PIN = 23;
+const int M1_PIN = 34;
+const int M2_PIN = 35;
+const int SWITCH_PIN = 32;
+const int R1_PIN = 25;
+const int R2_PIN = 27;
 
 //------------------------------------------ temp
-int temp = 30;
+int temp = 20;
 //------------------------------------------
 
 //objects
-Plant p1 = Plant(1);
-Plant p2 = Plant(2);
+Plant p1 = Plant(1 , R1_PIN , M2_PIN);
+Plant p2 = Plant(2 , R2_PIN , M2_PIN);
 
 Menu menu = Menu(0);
 
@@ -84,6 +84,11 @@ void loop() {
   ArduinoCloud.update();
   // Your code here 
   
+  
+  
+  
+  
+  /*
   if(ArduinoCloud.connected() && (temp>0)){
 
     time_t unixTime = ArduinoCloud.getLocalTime(); // Unix timestamp
@@ -91,16 +96,15 @@ void loop() {
     temp--;
     
     }
-
+*/
   Serial.println(" ");
   Serial.print(hour());
   Serial.print(":");
   Serial.print(minute());
   Serial.print(":");
   Serial.print(second());
-
   
-  /*
+  /*-----
   int valueOne = analogRead(35); // read the analog value from sensor
   int valueTwo = analogRead(34);
   int valueSwitch = digitalRead(32);
@@ -160,6 +164,15 @@ void switchLed(bool switchOn){
   } else {
     digitalWrite(LED_PIN, LOW);
   }
+}
+
+void updateTime(){
+  time_t unixTime = ArduinoCloud.getLocalTime(); // Unix timestamp
+  if (unixTime != 0){
+    setTime(unixTime);
+  } else {
+    message = "Its either 1970 or something went wrong and time could not be updated";
+  } 
 }
 
 

@@ -1,9 +1,14 @@
 #include "Plant.h"
 
-Plant::Plant(int num) {
+
+Plant::Plant(int num, int R_PIN, int M_PIN) {
+  MOISTURE_PIN = R_PIN;
+  RELAY_PIN = M_PIN;
   number = num;
-  name = "";
-  isWaterByT = true;
+  timeToWaterInS = 1; // so the default is enough for the user to know it works and isnt set correctly
+  percentMoistureToReach = 50; // idk adequate default
+  isWateredByT = true;
+  name = "undefined";
 }
 
 void Plant::setName(String nam){
@@ -12,6 +17,20 @@ void Plant::setName(String nam){
 
 String Plant::getName(){
   return name;
+}
+
+void Plant::waterPlant(){
+  if (isWateredByT){
+    digitalWrite(RELAY_PIN, HIGH);
+    delay(timeToWaterInS*1000);
+    digitalWrite(RELAY_PIN, LOW);
+  } else {
+    waterPlanrByP();
+  }
+}
+
+void Plant::waterPlanrByP(){
+  //todo
 }
 
 void Plant::setModeTimer(int d, int h, int m){

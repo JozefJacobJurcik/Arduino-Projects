@@ -10,10 +10,16 @@ class Plant {
     String name;
     int mode;
   public:
-    Plant(int num);
+    Plant(int num, int RELAY_PIN, int MOISTURE_PIN);
+    int RELAY_PIN;
+    int MOISTURE_PIN;
+    int timeToWaterInS;
+    int percentMoistureToReach;
     void setName(String nam);
     String getName();
-    bool isWaterByT;
+    bool isWateredByT;
+    void waterPlant();
+    void waterPlanrByP();
     void setModeTimer(int d, int h, int m);
     void setModeMoisture(int m);
     void setModeHybrid(int p, int d, int h, int m);
