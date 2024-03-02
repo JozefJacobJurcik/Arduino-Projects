@@ -92,7 +92,6 @@ void Menu::check(String userIn) {
         status = 4;
 
       } else {
-        printAnswer("I did not get that...");
         status = 0;
         onMessageChange();
 
@@ -116,7 +115,7 @@ void Menu::check(String userIn) {
         status = 0;
         onMessageChange();
       } else {
-        printAnswer("Hmm...try again...");
+        printAnswer("Hmm...try again... or type 'back'");
       }
 
     break;
@@ -148,7 +147,7 @@ void Menu::check(String userIn) {
         status = 0;
         onMessageChange();
       } else {
-        printAnswer("Hmm...try again...");
+        printAnswer("Hmm...try again... or type 'back'");
       }
     break;
 
@@ -166,9 +165,9 @@ void Menu::check(String userIn) {
           p2.setModeTimer(d,h,m);
 
         } else {
-          printAnswer(" error in 211, exiting..");
+          printAnswer(" error in 211, exiting...type anything to go back to menu");
           status = 0;
-          onMessageChange();
+          
         }
       
       reply = "Timer was set to Days: ";
@@ -181,9 +180,9 @@ void Menu::check(String userIn) {
       status = 0;
 
       } else {
-        printAnswer("wrong format could not set timer, exiting");
+        printAnswer("wrong format could not set timer, exiting...type anything to go back to menu");
         status = 0;
-        onMessageChange();
+        
       }
     break;
 
@@ -200,9 +199,9 @@ void Menu::check(String userIn) {
           p2.setModeMoisture(p);
 
         } else {
-          printAnswer(" error in 212, exiting..");
+          printAnswer(" error in 212, exiting...type anything to go back to menu");
           status = 0;
-          onMessageChange();
+          
         }
 
       reply = "Moisture treshold is set to ";
@@ -212,9 +211,9 @@ void Menu::check(String userIn) {
       status = 0;
 
       } else {
-        printAnswer("wrong format could not set moisture, exiting");
+        printAnswer("wrong format could not set moisture, exiting...type anything to go back to menu");
         status = 0;
-        onMessageChange();
+        
       }
 
     break;
@@ -231,9 +230,9 @@ void Menu::check(String userIn) {
           p2.setModeHybrid(p,d,h,m);
 
         } else {
-          printAnswer(" error in 213, exiting..");
+          printAnswer(" error in 213, exiting...type anything to go back to menu");
           status = 0;
-          onMessageChange();
+          
         }
       
       reply = "After moisture in the pot reaches ";
@@ -249,9 +248,9 @@ void Menu::check(String userIn) {
       status = 0;
 
       } else {
-        printAnswer("wrong format could not set hybrid mode, exiting...");
+        printAnswer("wrong format could not set hybrid mode, exiting...type anything to go back to menu");
         status = 0;
-        onMessageChange();
+        
       }
       
     break;
@@ -267,9 +266,9 @@ void Menu::check(String userIn) {
           p2.setModeBoth(p,d,h,m);
 
         } else {
-          printAnswer(" error in 214, exiting..");
+          printAnswer(" error in 214, exiting...type anything to go back to menu");
           status = 0;
-          onMessageChange();
+          
         }
       
       reply = "After moisture in the pot reaches ";
@@ -285,9 +284,9 @@ void Menu::check(String userIn) {
       status = 0;
 
       } else {
-        printAnswer("wrong format could not set both mode, exiting...");
+        printAnswer("wrong format could not set both mode, exiting...type anything to go back to menu");
         status = 0;
-        onMessageChange();
+        
       }
 
     break;
@@ -296,7 +295,7 @@ void Menu::check(String userIn) {
     case 215:
       numValues = sscanf(userIn.c_str(), "%dd%dh%dm", &d, &h, &m);
       
-      if (numValues == 3){
+      if ( (numValues == 3 ) && (d>0) ){
         if (selectedPlant == 1){
           p1.setModeSchedule(d,h,m);
 
@@ -304,9 +303,9 @@ void Menu::check(String userIn) {
           p2.setModeSchedule(d,h,m);
 
         } else {
-          printAnswer(" error in 215, exiting..");
+          printAnswer(" error in 215, exiting..type anything to go back to menu");
           status = 0;
-          onMessageChange();
+          
         }
       
       reply = "Plant will be watered every ";
@@ -319,27 +318,29 @@ void Menu::check(String userIn) {
       status = 0;
 
       } else {
-        printAnswer("wrong format could not set schedule, exiting...");
+        printAnswer("wrong format could not set schedule, exiting...type anything to go back to menu");
         status = 0;
-        onMessageChange();
+        
       }
     break;
 
     //reply after selecting to water now and selecting a plant
     case 3:
       if (userIn == p1.getName()){
-        printAnswer("How much ?");
-        status = 31; 
+        p1.waterPlant();
+        printAnswer("watering... press anything to go back");
+        status = 0; 
 
       }else if (userIn == p1.getName()){
-        printAnswer("How much ? #todo");
-        status = 32;
+        p2.waterPlant();
+        printAnswer("watering... press anything to go back");
+        status = 0;
 
       } else if (userIn == "back"){
         status = 0;
         onMessageChange();
       } else {
-        printAnswer("Hmm...try again...");
+        printAnswer("Hmm...try again... or type 'back'");
       }
     break; 
 
@@ -357,39 +358,41 @@ void Menu::check(String userIn) {
         onMessageChange();
 
       } else {
-        printAnswer("Hmm...try again...");
+        printAnswer("Hmm...try again... or type 'back' ");
       }
     break;
     
     // rename plant 1
     case 41:
       if (userIn == "back" || userIn == p2.getName()){
-        printAnswer("invalid name, exiting...");
+        printAnswer("invalid name, exiting...type anything to go back to menu");
         status = 0;
-        onMessageChange();
+        
       } else {
         p1.setName(userIn);
         reply = "Name of plant 1 was changed to : ";
-        reply += userIn; 
+        reply += userIn;
+        reply += " ...type anything to go back to menu"; 
         printAnswer(reply);
         status = 0;
-        onMessageChange();
+        
       }
     break;
 
     //rename plant 2
     case 42:
       if (userIn == "back" || userIn == p1.getName()){
-        printAnswer("invalid name, exiting...");
+        printAnswer("invalid name, exiting... type anything to go back to menu");
         status = 0;
-        onMessageChange();
+        
       } else {
         p2.setName(userIn);
         reply = "Name of plant 2 was changed to : ";
-        reply += userIn; 
+        reply += userIn;
+        reply += " ...type anything to go back to menu";
         printAnswer(reply);
         status = 0;
-        onMessageChange();
+        
       }
     break;
 
@@ -409,7 +412,7 @@ void Menu::check(String userIn) {
         status = 0;
         onMessageChange();
       } else {
-        printAnswer("Hmm...try again...");
+        printAnswer("Hmm...try again... or type 'back' ");
       }
     break;
 
@@ -426,7 +429,7 @@ void Menu::check(String userIn) {
         status = 0;
         onMessageChange();
       } else {
-        printAnswer("Hmm...try again...");
+        printAnswer("Hmm...try again... or type 'back'");
       }
 
     break;
@@ -501,7 +504,7 @@ void Menu::check(String userIn) {
         onMessageChange();
 
       } else {
-        printAnswer("Hmm...try again...");
+        printAnswer("Hmm...try again... or type 'back'");
       }
     break;
 
@@ -510,7 +513,8 @@ void Menu::check(String userIn) {
      
     // if something went wrong
     default:
-      printAnswer("default case status ... something went wrong");
+      printAnswer("default case status ... something went wrong press anything to go back to menu");
+      status = 0;
     break;
   }
 

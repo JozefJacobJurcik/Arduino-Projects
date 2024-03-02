@@ -85,7 +85,12 @@ void loop() {
   // Your code here 
   
   
-  
+  if (p1.getAlarmIsTripped()){
+    p1.waterPlant();
+    p1.setAlarm();
+  }
+
+  //todo plant 2 a system aby sa moisture vkuse sama nespustala
   
   
   /*
@@ -175,5 +180,7 @@ void updateTime(){
   } 
 }
 
-
+time_t getCustomTimeNow(){
+  return ArduinoCloud.getLocalTime();
+}
 
