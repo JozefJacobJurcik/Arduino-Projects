@@ -7,7 +7,8 @@ Plant::Plant(int num, int R_PIN, int M_PIN) {
   RELAY_PIN = M_PIN;
   number = num;
   wateringTimeInS = 1; // so the default is enough for the user to know it works and isnt set correctly
-  percentMoistureToReach = 50; // idk adequate default
+  percentMoistureToReach = 0; // idk adequate default
+  percentMoistureToWater = 0;
   isWateredByT = true;
   name = "undefined";
   moistureAlarmIsTripped = false; 
@@ -15,6 +16,10 @@ Plant::Plant(int num, int R_PIN, int M_PIN) {
   firstAlarmForSchedule = 0;
   timerInS = 60;
   alarmTime = 0; // unix time when the alarm is tripped
+  errorMessage = "";
+  isError = false;
+  waterByPPumpTimeInS = 1;
+  waterByPWaitTimeInS = 10;
 }
 
 void Plant::setName(String nam){
@@ -87,7 +92,7 @@ bool Plant::getAlarmIsTripped(){
     break;
 
     default:
-      return true; // idk probably better than return nothing and get an error - potential bug
+      return true; // idk probably better than return nothing and get an error - afaik no error handling on arduino - potential bug
     break;
 
 
@@ -106,16 +111,38 @@ void Plant::setAlarm(){
 
 void Plant::waterPlant(){
   if (isWateredByT){
-    digitalWrite(RELAY_PIN, HIGH);
-    delay(wateringTimeInS*1000);
-    digitalWrite(RELAY_PIN, LOW);
+    waterPlantByT(wateringTimeInS);
   } else {
-    waterPlanrByP();
+    waterPlantByP(percentMoistureToWater);
   }
 }
 
-void Plant::waterPlanrByP(){
-  //todo
+void Plant::waterPlantByP(int percentMoisture){
+  int i = 0; // so there is not an infinite loop if the sensor malfunctions
+  int oldMoisture = 0;
+  int newMoisture = getMoistureFromSensor();
+  
+  while((percentMoisture < newMoisture) && (i < 3)){
+    
+    if((oldMoisture - 3) < newMoisture < (oldMoisture + 3)){ // just == but with a margin of error = 3
+      i++;
+    }
+    oldMoisture = newMoisture;
+  
+    waterPlantByT(waterByPPumpTimeInS); 
+    delay(waterByPWaitTimeInS * 1000); 
+    newMoisture = getMoistureFromSensor();
+  }
+
+  if (i == 3){
+    setError("while watering the sensor did not change its reading");
+  }
+}
+
+void Plant::waterPlantByT(int timeInS){
+  digitalWrite(RELAY_PIN, HIGH);
+  delay(timeInS*1000);
+  digitalWrite(RELAY_PIN, LOW);
 }
 
 void Plant::setModeTimer(int d, int h, int m){
@@ -157,16 +184,32 @@ void Plant::setModeSchedule(int d, int h, int m){
 
 }
 
-void Plant::setWaterByP(int p){
-  //todo
+void Plant::setWaterByP(int p, int x, int w){
+  isWateredByT = false;
+  percentMoistureToWater = p;
+  waterByPPumpTimeInS = x;
+  waterByPWaitTimeInS = w;
 }
 
 void Plant::setWaterByT(int t){
-  //todo
+  isWateredByT = true;
+  wateringTimeInS = t;
 }
 
 int Plant::getMoistureFromSensor(){
   //todo has to  return a number from 0 to 100
+}
+
+void Plant::setError(String eMessage){
+  errorMessage = eMessage;
+  isError = true;
+}
+
+bool Plant::checkError(){ return isError; }
+
+String Plant::getErrorMessageAndReset(){ 
+  isError = false;
+  return errorMessage;
 }
 
 String Plant::getMode(){

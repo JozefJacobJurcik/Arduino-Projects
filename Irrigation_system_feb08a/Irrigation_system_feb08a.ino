@@ -21,6 +21,7 @@
 #include "time.h"
 #include "TimeLib.h"
 #include "sntp.h"
+#include "tuple"
 
 
 const int LED_PIN = 23;
@@ -40,7 +41,8 @@ Plant p2 = Plant(2 , R2_PIN , M2_PIN);
 
 Menu menu = Menu(0);
 
-
+time_t timeoutAfterWatering;
+time_t timeOfLastMessageChhange;
 
 
 void setup() {
@@ -84,31 +86,30 @@ void loop() {
   ArduinoCloud.update();
   // Your code here 
   
-  
-  if (p1.getAlarmIsTripped()){
-    p1.waterPlant();
-    p1.setAlarm();
+  //update time at 3 am
+  if ((hour()==3)&& (0 < minute() < 4)){
+    updateTime();
   }
 
-  //todo plant 2 a system aby sa moisture vkuse sama nespustala
+  //chcek bedtime
+  auto bedtime = menu.getBedtime(); 
+  bool isItBedtime = (std::get<0>(bedtime)*60 + std::get<1>(bedtime)) < (hour()*60 + minute()) < (std::get<2>(bedtime)*60 + std::get<3>(bedtime));
   
-  
-  /*
-  if(ArduinoCloud.connected() && (temp>0)){
-
-    time_t unixTime = ArduinoCloud.getLocalTime(); // Unix timestamp
-    setTime(unixTime);
-    temp--;
+  if (!(isItBedtime || (getCustomTimeNow() < timeoutAfterWatering))){
     
+    if (checkEnoughWater()){
+      checkAlarmWaterSetNextAllPlants();
+    } else {
+      //todo notifivation
     }
-*/
-  Serial.println(" ");
-  Serial.print(hour());
-  Serial.print(":");
-  Serial.print(minute());
-  Serial.print(":");
-  Serial.print(second());
-  
+  } 
+
+  if (( getCustomTimeNow() - timeOfLastMessageChhange) < 600){
+    delay(100);
+  } else {
+    delay(60000); // wait a minute between updates if not actively messaging
+  }
+
   /*-----
   int valueOne = analogRead(35); // read the analog value from sensor
   int valueTwo = analogRead(34);
@@ -127,10 +128,37 @@ void loop() {
   }
   */
 
-  delay(1000);
   
   
   
+  
+}
+
+void checkAlarmWaterSetNextAllPlants(){
+  bool wasWatered = false;
+
+  if (p1.getAlarmIsTripped()){
+      p1.waterPlant();
+      p1.setAlarm();
+      wasWatered = true;
+      if (p1.checkError()){
+      // todo notify with p1.getErrorMessageAndReset()
+      }
+    }
+
+    if (p2.getAlarmIsTripped()){
+      p2.waterPlant();
+      p2.setAlarm();
+      wasWatered = true;
+      if (p2.checkError()){
+      // todo notify with p1.getErrorMessageAndReset()
+      }
+    }
+  
+  if (wasWatered){ // not ideal because the menu doesnt work
+    timeoutAfterWatering = getCustomTimeNow() + 600 ; // 10 min from now
+    wasWatered = false;
+  }
 }
 
 /*
@@ -153,6 +181,8 @@ void onLedChange()  {
 */
 
 void onMessageChange()  {
+
+  timeOfLastMessageChhange = getCustomTimeNow();
 
   if (menu.getReplyReadyStatus()){
     message = menu.getReply() ;
@@ -178,6 +208,10 @@ void updateTime(){
   } else {
     message = "Its either 1970 or something went wrong and time could not be updated";
   } 
+}
+
+bool checkEnoughWater(){
+  return (digitalRead(SWITCH_PIN)== HIGH);
 }
 
 time_t getCustomTimeNow(){

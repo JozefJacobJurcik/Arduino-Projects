@@ -1,19 +1,24 @@
 #include "Menu.h"
 #include "Plant.h"
 #include "TimeLib.h"
+#include "tuple"
 
 extern void onMessageChange();
 extern void updateTime();
 extern void switchLed(bool switchOn);
 extern Plant p1;
 extern Plant p2;
-int d,h,m,p,t,numValues;
+int d,h,m,p,t,x,w,hh,mm,numValues;
 
 
 Menu::Menu(int stat) {
   status = stat;
   replyReady = false;
   selectedPlant = 0;
+  bedtimeStartH = 0;
+  bedtimeStartM = 0;
+  bedtimeEndH = 0;
+  bedtimeEndM = 0;
 }
 
 void Menu::printAnswer(String rep) {
@@ -49,6 +54,10 @@ void Menu::check(String userIn) {
       m = 0;
       p = 0;
       t = 0;
+      x = 0;
+      w = 0;
+      hh = 0;
+      mm = 0;
       numValues = 0;
     break;
 
@@ -418,7 +427,7 @@ void Menu::check(String userIn) {
 
     case 51:
       if (userIn == "moisture"){
-        printAnswer("To what moisture % should the plant be watered? Type a number from 1 to 100: ");
+        printAnswer("The pump should be running for x seconds then wait w seconds and repeat thet until p (in %) moisture is reached.\nSet x,w,p in this format {p}p{x}x{w}w\ne.g : 85p5x300w\n meaning: water for 5s wait 5 min and repeat until 85%");
         status = 511;
 
       } else if (userIn == "time"){
@@ -435,24 +444,27 @@ void Menu::check(String userIn) {
     break;
 
     case 511:
-      p = userIn.toInt();
-
-      if (0 < p < 101){ 
-        if (selectedPlant == 1) {
+      numValues = sscanf(userIn.c_str(), "%dp%dx%dw", &p, &x, &w);
+      
+      if ( (numValues == 3 ) && (0<p<101) && (x<121) ){
+        if (selectedPlant == 1){
           p1.isWateredByT = false;
-          p1.setWaterByP(p);
-        } else if (selectedPlant == 2) {
+          p1.setWaterByP(p,x,w);
+
+        } else if (selectedPlant == 2){
           p2.isWateredByT = false;
-          p2.setWaterByP(p);
+          p2.setWaterByP(p,x,w);
+
         } else {
-          printAnswer("error in 511, exiting...");
+          printAnswer(" error in 511, exiting..type anything to go back to menu");
           status = 0;
-          onMessageChange();
+          
         }
+
       } else {
-        printAnswer("wrong format could not set volume by moisture, exiting...");
+        printAnswer("wrong format could not set volume by moisture, type anything to go back to menu.");
         status = 0;
-        onMessageChange();
+        
       }
 
     break;
@@ -469,14 +481,14 @@ void Menu::check(String userIn) {
           p2.isWateredByT = true;
           p2.setWaterByT(t);
         } else {
-          printAnswer("error in 512, exiting...");
+          printAnswer("error in 512, type anything to go back to menu...");
           status = 0;
-          onMessageChange();
+          
         }
       } else {
-        printAnswer("wrong format could not set volume by time, exiting...");
+        printAnswer("wrong format could not set volume by time, type anything to go back to menu...");
         status = 0;
-        onMessageChange();
+        
       }
     break;
     
@@ -497,7 +509,8 @@ void Menu::check(String userIn) {
         //todo
 
       }else if (userIn == "bedtime"){
-        //todo
+        printAnswer("Define bedtime in 24h format:\ne.g. : 00:30 - 10:25 would be 0h30m10hh25mm");
+        status = 61;
 
       }else if (userIn == "back"){
         status = 0;
@@ -505,6 +518,21 @@ void Menu::check(String userIn) {
 
       } else {
         printAnswer("Hmm...try again... or type 'back'");
+      }
+    break;
+
+    case 61:
+      numValues = sscanf(userIn.c_str(), "%dh%dm%dhh%dmm", &h, &m, &hh, &mm);
+      
+      if ((numValues == 4) && (0 <= h < 24) && (0 <= hh < 24) && (0 <= m < 61) && (0 <= mm < 61)){
+        bedtimeStartH = h;
+        bedtimeStartM = m;
+        bedtimeEndH = hh;
+        bedtimeEndM = mm;
+      } else {
+        printAnswer("wrong format could not set bedtime, type anything to go back to menu.");
+        status = 0;
+        
       }
     break;
 
@@ -522,4 +550,9 @@ void Menu::check(String userIn) {
 
   
 }
+
+std::tuple<int, int, int, int> Menu::getBedtime(){
+  return std::make_tuple(bedtimeStartH, bedtimeStartM, bedtimeEndH, bedtimeEndM);
+}
+
 
