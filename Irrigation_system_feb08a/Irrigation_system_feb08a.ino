@@ -24,12 +24,13 @@
 #include "tuple"
 
 
-const int LED_PIN = 23;
+const int LED_PIN = 14;
 const int M1_PIN = 34;
 const int M2_PIN = 35;
 const int SWITCH_PIN = 32;
 const int R1_PIN = 25;
 const int R2_PIN = 27;
+ 
 
 //------------------------------------------ temp
 int temp = 20;
@@ -51,10 +52,6 @@ void setup() {
   Serial.begin(9600);
   // This delay gives the chance to wait for a Serial Monitor without blocking if none is found
   delay(1500); 
-
-
-  
-
   // Defined in thingProperties.h
   initProperties();
 
@@ -71,93 +68,78 @@ void setup() {
   setDebugMessageLevel(2);
   ArduinoCloud.printDebugInfo();
 
-  //time setup
   
-  
-
-
-  pinMode(25, OUTPUT);
-  pinMode(27, OUTPUT);
+  pinMode(R1_PIN, OUTPUT);
+  pinMode(R2_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
   
 }
 
 void loop() {
   ArduinoCloud.update();
-  // Your code here 
   
-  // todo only if connected
-
-  //update time at 3 am
-  if ((hour()==3)&& (0 < minute() < 4)){
+  //update time at 12 am
+  if ((hour()==0) && (0 < minute() < 3)){
     updateTime();
   }
 
+  delay(200);
+  
+  if (ArduinoCloud.connected()){
+
+    if (( getCustomTimeNow() - timeOfLastMessageChange) < 600){
+      ArduinoCloud.update();
+      delay(200);
+    } else {
+      doIfNotMessaging();
+      delay(60000); //1min
+    }
+  }
+    
+}
+
+void doIfNotMessaging(){
+
+
   //chcek bedtime
   auto bedtime = menu.getBedtime(); 
-  bool isItBedtime = (std::get<0>(bedtime)*60 + std::get<1>(bedtime)) < (hour()*60 + minute()) < (std::get<2>(bedtime)*60 + std::get<3>(bedtime));
-  
-  if (!(isItBedtime || (getCustomTimeNow() < timeoutAfterWatering))){
+  bool isItBedtime = ((std::get<0>(bedtime)*60 + std::get<1>(bedtime)) < (hour()*60 + minute())) && ((hour()*60 + minute()) < (std::get<2>(bedtime)*60 + std::get<3>(bedtime)));
     
+  if (!(isItBedtime || (getCustomTimeNow() < timeoutAfterWatering))){
+      
     if (checkEnoughWater()){
       checkAlarmWaterSetNextAllPlants();
     } else {
-      //todo notification
+      p1.setError("not enough water in tank");
+      p2.setError("not enough water in tank");
+      digitalWrite(LED_PIN, HIGH);
     }
-  } 
-
-  if (( getCustomTimeNow() - timeOfLastMessageChange) < 600){
-    delay(100);
-  } else {
-    delay(60000); // wait a minute between updates if not actively messaging
   }
 
-  /*-----
-  int valueOne = analogRead(35); // read the analog value from sensor
-  int valueTwo = analogRead(34);
-  int valueSwitch = digitalRead(32);
-
-  Serial.println(valueOne);
-  Serial.println(valueSwitch);
-  Serial.println(valueTwo);
-
-  if (valueSwitch == HIGH){
-    digitalWrite(25, HIGH);
-    digitalWrite(27, LOW);
-  } else {
-    digitalWrite(27, HIGH);
-    digitalWrite(25, LOW);
-  }
-  */
-
-  
-  
-  
-  
 }
 
 void checkAlarmWaterSetNextAllPlants(){
   bool wasWatered = false;
 
   if (p1.getAlarmIsTripped()){
-      p1.waterPlant();
-      p1.setAlarm();
-      wasWatered = true;
-      if (p1.checkError()){
-      // todo notify with p1.getErrorMessageAndReset()
-      }
-    }
+    p1.waterPlant();
+    p1.setAlarm();
+    wasWatered = true;
+  }
 
-    if (p2.getAlarmIsTripped()){
-      p2.waterPlant();
-      p2.setAlarm();
-      wasWatered = true;
-      if (p2.checkError()){
-      // todo notify with p1.getErrorMessageAndReset()
-      }
-    }
+  if (p2.getAlarmIsTripped()){
+    p2.waterPlant();
+    p2.setAlarm();
+    wasWatered = true;
+  }
   
-  if (wasWatered){ // not ideal because the menu doesnt work
+  if (p1.checkError() || p2.checkError()){
+    digitalWrite(LED_PIN, HIGH);
+  } else {
+    digitalWrite(LED_PIN, LOW);
+  }
+
+  if (wasWatered){ 
     timeoutAfterWatering = getCustomTimeNow() + 600 ; // 10 min from now
     wasWatered = false;
   }
@@ -209,6 +191,7 @@ void updateTime(){
     setTime(unixTime);
   } else {
     message = "Its either 1970 or something went wrong and time could not be updated";
+    digitalWrite(LED_PIN, HIGH);
   } 
 }
 
