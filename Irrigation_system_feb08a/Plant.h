@@ -19,6 +19,9 @@ class Plant {
     bool isError;
     int waterByPPumpTimeInS;
     int waterByPWaitTimeInS;
+    int sensorAirNumber;
+    int sensorWaterNumber;
+    int getMoistureSensorReading();
   public:
     Plant(int num, int RELAY_PIN, int MOISTURE_PIN);
     int RELAY_PIN;
@@ -41,6 +44,8 @@ class Plant {
     void setWaterByP(int p, int x, int w);
     void setWaterByT(int t);
     int getMoistureFromSensor();
+    void setSensorAir();
+    void setSensorWater();
     String getMode();
     void setError(String eMessage);
     String getErrorMessageAndReset();

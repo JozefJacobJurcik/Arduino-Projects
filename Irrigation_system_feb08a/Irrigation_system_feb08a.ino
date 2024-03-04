@@ -42,7 +42,7 @@ Plant p2 = Plant(2 , R2_PIN , M2_PIN);
 Menu menu = Menu(0);
 
 time_t timeoutAfterWatering;
-time_t timeOfLastMessageChhange;
+time_t timeOfLastMessageChange;
 
 
 void setup() {
@@ -86,6 +86,8 @@ void loop() {
   ArduinoCloud.update();
   // Your code here 
   
+  // todo only if connected
+
   //update time at 3 am
   if ((hour()==3)&& (0 < minute() < 4)){
     updateTime();
@@ -100,11 +102,11 @@ void loop() {
     if (checkEnoughWater()){
       checkAlarmWaterSetNextAllPlants();
     } else {
-      //todo notifivation
+      //todo notification
     }
   } 
 
-  if (( getCustomTimeNow() - timeOfLastMessageChhange) < 600){
+  if (( getCustomTimeNow() - timeOfLastMessageChange) < 600){
     delay(100);
   } else {
     delay(60000); // wait a minute between updates if not actively messaging
@@ -182,7 +184,7 @@ void onLedChange()  {
 
 void onMessageChange()  {
 
-  timeOfLastMessageChhange = getCustomTimeNow();
+  timeOfLastMessageChange = getCustomTimeNow();
 
   if (menu.getReplyReadyStatus()){
     message = menu.getReply() ;

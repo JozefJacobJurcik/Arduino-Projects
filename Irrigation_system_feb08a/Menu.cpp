@@ -6,6 +6,7 @@
 extern void onMessageChange();
 extern void updateTime();
 extern void switchLed(bool switchOn);
+extern bool checkEnoughWater();
 extern Plant p1;
 extern Plant p2;
 int d,h,m,p,t,x,w,hh,mm,numValues;
@@ -59,6 +60,7 @@ void Menu::check(String userIn) {
       hh = 0;
       mm = 0;
       numValues = 0;
+      selectedPlant = 0;
     break;
 
     // reply to 1st input after menu
@@ -66,7 +68,7 @@ void Menu::check(String userIn) {
 
       // because switch with a String doesnt work in c++ for some reason and im not bothered to do it with vectors
       if (userIn == "settings") {
-        printAnswer("Type:\n'time' to set the current time\n'calibrate' to calibrate the moisture sensors\n'bedtime' to set a do-not-water time period\nOr type 'back' to go back.");
+        printAnswer("Type:\n'time' to set the current time\n'calibrate' to calibrate the moisture sensors\n'bedtime' to set a do-not-water time period\n'check' to check if there is enough water\n'error' to see the error message\nOr type 'back' to go back.");
         status = 6; 
 
       }else if (userIn == "volume") {
@@ -340,7 +342,7 @@ void Menu::check(String userIn) {
         printAnswer("watering... press anything to go back");
         status = 0; 
 
-      }else if (userIn == p1.getName()){
+      }else if (userIn == p2.getName()){
         p2.waterPlant();
         printAnswer("watering... press anything to go back");
         status = 0;
@@ -506,11 +508,43 @@ void Menu::check(String userIn) {
         
 
       }else if (userIn == "calibrate"){
-        //todo
+        reply = "Do you want to calibrate the sensor of ";
+        reply += p1.getName();
+        reply += " or ";
+        reply += p2.getName();
+        reply += " ?";
+        printAnswer(reply);
+        
+        status = 61;
+
+      }else if (userIn == "check"){
+        
+        if(checkEnoughWater()){
+          printAnswer("Yes, there is enough water, for now...type anything to go back to menu...");
+        }else{
+          printAnswer("NO! there is not enough water... Plants wont be watered! Type anything to go back to menu.");
+        }
+        status = 0;
 
       }else if (userIn == "bedtime"){
         printAnswer("Define bedtime in 24h format:\ne.g. : 00:30 - 10:25 would be 0h30m10hh25mm");
-        status = 61;
+        status = 62;
+
+      }else if (userIn == "error"){
+        
+        if (p1.checkError() || p2.checkError()){
+
+          reply = p1.getErrorMessageAndReset();
+          reply += " and ";
+          reply += p2.getErrorMessageAndReset();
+          reply += "\nerrors were reset, type anytning to go back to menu";
+          printAnswer(reply);
+          status = 0;
+
+        } else {
+          printAnswer("no errors, type anytning to go back to menu");
+          status = 0;
+        }
 
       }else if (userIn == "back"){
         status = 0;
@@ -522,6 +556,73 @@ void Menu::check(String userIn) {
     break;
 
     case 61:
+      if (userIn == p1.getName()){
+        selectedPlant = 1;
+        printAnswer("Hold the sensor in open air and type 'ok' or 'back' to cancel");
+        status = 611;
+
+      }else if (userIn == p2.getName()){
+        selectedPlant = 2;
+        printAnswer("Hold the sensor in open air and type 'ok' (It takes ~5s to take a reading) or 'back' to cancel");
+        status = 611;
+
+      } else if (userIn == "back"){
+        status = 0;
+        onMessageChange();
+      } else {
+        printAnswer("Hmm...try again... or type 'back'");
+      }
+    break;
+
+    case 611:
+      if (userIn == "ok"){
+        if (selectedPlant == 1){
+          p1.setSensorAir();          
+
+        } else if (selectedPlant == 2){
+          p2.setSensorAir();
+
+        } else{
+          printAnswer("error in 611, type anything to go back to menu...");
+          status = 0;
+
+        }
+        printAnswer("Put the sensor into Water and type 'ok' (It takes ~5s to take a reading) or 'back' to cancel");
+        status = 6111;
+
+      } else if (userIn == "back"){
+        status = 0;
+        onMessageChange();
+      } else {
+        printAnswer("Hmm...try again... type 'ok' or type 'back'");
+      }
+    break;
+
+    case 6111:
+      if (userIn == "ok"){
+        if (selectedPlant == 1){
+          p1.setSensorWater();          
+
+        } else if (selectedPlant == 2){
+          p2.setSensorWater();
+
+        } else{
+          printAnswer("error in 6111, type anything to go back to menu...");
+          status = 0;
+
+        }
+        printAnswer("Sensor set! ... type anything to go back to menu.");
+        status = 0;
+
+      } else if (userIn == "back"){
+        status = 0;
+        onMessageChange();
+      } else {
+        printAnswer("Hmm...try again... type 'ok' or type 'back'");
+      }
+    break;
+
+    case 62:
       numValues = sscanf(userIn.c_str(), "%dh%dm%dhh%dmm", &h, &m, &hh, &mm);
       
       if ((numValues == 4) && (0 <= h < 24) && (0 <= hh < 24) && (0 <= m < 61) && (0 <= mm < 61)){

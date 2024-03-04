@@ -6,6 +6,7 @@ Plant::Plant(int num, int R_PIN, int M_PIN) {
   MOISTURE_PIN = R_PIN;
   RELAY_PIN = M_PIN;
   number = num;
+  mode = 0;
   wateringTimeInS = 1; // so the default is enough for the user to know it works and isnt set correctly
   percentMoistureToReach = 0; // idk adequate default
   percentMoistureToWater = 0;
@@ -16,10 +17,12 @@ Plant::Plant(int num, int R_PIN, int M_PIN) {
   firstAlarmForSchedule = 0;
   timerInS = 60;
   alarmTime = 0; // unix time when the alarm is tripped
-  errorMessage = "";
+  errorMessage = "no error";
   isError = false;
   waterByPPumpTimeInS = 1;
   waterByPWaitTimeInS = 10;
+  sensorAirNumber = 0;
+  sensorWaterNumber = 0;
 }
 
 void Plant::setName(String nam){
@@ -33,6 +36,11 @@ String Plant::getName(){
 bool Plant::getAlarmIsTripped(){
   
   switch(mode){
+
+    //no mode set yet
+    case 0:
+      return false;
+    break;
 
     //timer
     case 1:  
@@ -197,7 +205,48 @@ void Plant::setWaterByT(int t){
 }
 
 int Plant::getMoistureFromSensor(){
-  //todo has to  return a number from 0 to 100
+  int moisturePercent = 0;
+  int moistureAnalogRead = getMoistureSensorReading();
+  
+  if (sensorAirNumber == 0 || sensorWaterNumber == 0){
+    setError("calibrate the sensors");
+    return 100;
+
+  }else {
+    moisturePercent = map(moistureAnalogRead, sensorAirNumber, sensorWaterNumber, 0, 100);
+
+    if ( (moisturePercent < -3) || (moisturePercent > 103) ){
+      setError("recalibrate the sensors");
+      return 100;
+    } else {
+      return moisturePercent;
+    }
+
+  }
+  
+}
+
+void Plant::setSensorAir(){
+  sensorAirNumber = getMoistureSensorReading();
+}
+
+void Plant::setSensorWater(){
+  sensorWaterNumber = getMoistureSensorReading();
+}
+
+int Plant::getMoistureSensorReading(){
+  int moistureSum = 0;
+  int moistureReading = 0;
+  int moistureAverage = 0;
+
+  for (int i = 0; i<10; i++){
+    moistureReading = analogRead(MOISTURE_PIN);
+    moistureSum += moistureReading;
+    delay(500);
+  }
+  moistureAverage = moistureSum / 10;
+
+  return moistureAverage;
 }
 
 void Plant::setError(String eMessage){
@@ -209,7 +258,9 @@ bool Plant::checkError(){ return isError; }
 
 String Plant::getErrorMessageAndReset(){ 
   isError = false;
-  return errorMessage;
+  String temp = errorMessage;
+  errorMessage = "no error";
+  return temp;
 }
 
 String Plant::getMode(){
