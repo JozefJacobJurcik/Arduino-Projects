@@ -40,7 +40,7 @@ String Menu::getReply() {
 
 
 
-// default status = 0 - I cant be bothered to do it differently
+// default status = 0 - there probably is a better way but i dont think it would be practical to rewrite it
 void Menu::check(String userIn) {
 
 
@@ -49,6 +49,7 @@ void Menu::check(String userIn) {
     // default menu
     case 0:
       printAnswer("Menu type:\n'settings' to show additional settings\n'volume' to set how much water each plant should get\n'mode' to switch between modes\n'now' to water a plant manually right now\n'rename' to rename the plants");
+      //todo errors
       status = 1;
       d = 0;
       h = 0;
