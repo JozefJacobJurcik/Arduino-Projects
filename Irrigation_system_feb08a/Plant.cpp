@@ -215,7 +215,10 @@ int Plant::getMoistureFromSensor(){
   }else {
     moisturePercent = map(moistureAnalogRead, sensorAirNumber, sensorWaterNumber, 0, 100);
 
-    if ( (moisturePercent < -3) || (moisturePercent > 103) ){
+    if ( moisturePercent < -3 ){
+      setError("recalibrate the sensors");
+      return 0;
+    } else if (moisturePercent > 103) {
       setError("recalibrate the sensors");
       return 100;
     } else {
@@ -250,11 +253,16 @@ int Plant::getMoistureSensorReading(){
 }
 
 void Plant::setError(String eMessage){
-  errorMessage = eMessage;
+  errorMessage += " and ";
+  errorMessage += eMessage;
   isError = true;
 }
 
 bool Plant::checkError(){ return isError; }
+
+String Plant::getErrorMessage(){
+  return errorMessage;
+}
 
 String Plant::getErrorMessageAndReset(){ 
   isError = false;

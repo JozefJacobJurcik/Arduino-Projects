@@ -50,6 +50,7 @@ class Plant {
     void setError(String eMessage);
     String getErrorMessageAndReset();
     bool checkError();
+    String getErrorMessage();
 
   
     

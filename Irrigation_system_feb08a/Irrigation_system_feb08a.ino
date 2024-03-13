@@ -17,6 +17,8 @@
 
 #include "thingProperties.h"
 #include "Menu.h"
+#include "Callmebot_ESP32.h"
+
 #include "Plant.h"
 #include "time.h"
 #include "TimeLib.h"
@@ -36,6 +38,11 @@ Plant p1 = Plant(1 , R1_PIN , M2_PIN);
 Plant p2 = Plant(2 , R2_PIN , M2_PIN);
 
 Menu menu = Menu(0);
+
+String phoneNumber = SECRET_PHONE_NUMBER;
+String apiKey = SECRET_API_KEY;
+bool whatsappMessageSent = false;
+
 
 //time
 time_t timeoutAfterWatering;
@@ -66,13 +73,21 @@ void setup() {
 
   
   pinMode(R1_PIN, OUTPUT);
+  digitalWrite(R1_PIN, LOW);
+
   pinMode(R2_PIN, OUTPUT);
+  digitalWrite(R2_PIN, LOW);
+
   pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
   
 }
 
 void loop() {
   ArduinoCloud.update();
+
+  
+  
   
   //update time at 12 am
   if ((hour()==0) && (0 < minute() < 3)){
@@ -91,8 +106,9 @@ void loop() {
       delay(60000); //1min
     }
   }
-    
+   
 }
+
 
 void doIfNotMessaging(){
 
@@ -131,8 +147,25 @@ void checkAlarmWaterSetNextAllPlants(){
   
   if (p1.checkError() || p2.checkError()){
     digitalWrite(LED_PIN, HIGH);
+    
+    if (!whatsappMessageSent){
+      String msg = "Something happened - ";
+      msg += p1.getName();
+      msg += "->{ ";
+      msg += p1.getErrorMessage();
+      msg += " }  ";
+      msg += p2.getName();
+      msg += "->{ ";
+      msg += p1.getErrorMessage();
+      msg += " } check the app and go to 'settings' -> 'error' to reset the error trigger.";
+      
+      sendWhatsappMessage(msg);
+      whatsappMessageSent = true;
+    }
+
   } else {
     digitalWrite(LED_PIN, LOW);
+    whatsappMessageSent = false;
   }
 
   if (wasWatered){ 
@@ -198,4 +231,10 @@ bool checkEnoughWater(){
 time_t getCustomTimeNow(){
   return ArduinoCloud.getLocalTime();
 }
+
+void sendWhatsappMessage(String WhatsappMessage){
+  Callmebot.whatsappMessage(phoneNumber, apiKey, WhatsappMessage);
+	Serial.println(Callmebot.debug());
+}
+
 

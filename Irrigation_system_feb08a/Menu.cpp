@@ -69,7 +69,7 @@ void Menu::check(String userIn) {
 
       // because switch with a String doesnt work in c++ for some reason and im not bothered to do it with vectors
       if (userIn == "settings") {
-        printAnswer("Type:\n'time' to set the current time\n'calibrate' to calibrate the moisture sensors\n'bedtime' to set a do-not-water time period\n'check' to check if there is enough water\n'error' to see the error message\nOr type 'back' to go back.");
+        printAnswer("Type:\n'time' to set the current time\n'calibrate' to calibrate the moisture sensors\n'bedtime' to set a do-not-water time period\n'check' to check all sensors\n'error' to see the error message\nOr type 'back' to go back.");
         status = 6; 
 
       }else if (userIn == "volume") {
@@ -521,10 +521,23 @@ void Menu::check(String userIn) {
       }else if (userIn == "check"){
         
         if(checkEnoughWater()){
-          printAnswer("Yes, there is enough water, for now...type anything to go back to menu...");
+          reply = "There is enough water in the tank\n"; 
+          
         }else{
-          printAnswer("NO! there is not enough water... Plants wont be watered! Type anything to go back to menu.");
+          reply = "There is NOT enough water in the tank\n";
+          
         }
+
+        reply += p1.getName();
+        reply +="'s moisture sensor reads: ";
+        reply += String(p1.getMoistureFromSensor());
+        reply +="%\n";
+        reply += p2.getName();
+        reply +="'s moisture sensor reads: ";
+        reply += String(p2.getMoistureFromSensor());
+        reply +="%\n...type anything to go back to menu...";
+
+        printAnswer(reply);
         status = 0;
 
       }else if (userIn == "bedtime"){
