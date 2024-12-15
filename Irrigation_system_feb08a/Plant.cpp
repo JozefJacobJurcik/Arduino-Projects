@@ -3,8 +3,8 @@
 extern time_t getCustomTimeNow();
 
 Plant::Plant(int num, int R_PIN, int M_PIN) {
-  MOISTURE_PIN = R_PIN;
-  RELAY_PIN = M_PIN;
+  RELAY_PIN = R_PIN;
+  MOISTURE_PIN = M_PIN;
   number = num;
   mode = 0;
   wateringTimeInS = 1; // so the default is enough for the user to know it works and isnt set correctly
@@ -148,9 +148,9 @@ void Plant::waterPlantByP(int percentMoisture){
 }
 
 void Plant::waterPlantByT(int timeInS){
-  digitalWrite(RELAY_PIN, HIGH);
-  delay(timeInS*1000);
   digitalWrite(RELAY_PIN, LOW);
+  delay(timeInS*1000);
+  digitalWrite(RELAY_PIN, HIGH);
 }
 
 void Plant::setModeTimer(int d, int h, int m){
@@ -245,10 +245,12 @@ int Plant::getMoistureSensorReading(){
   for (int i = 0; i<10; i++){
     moistureReading = analogRead(MOISTURE_PIN);
     moistureSum += moistureReading;
+    Serial.println(moistureReading); // debug
     delay(500);
   }
   moistureAverage = moistureSum / 10;
-
+  Serial.println("getmoisture reading moisture average:"); // debug
+  Serial.println(moistureAverage); // debug
   return moistureAverage;
 }
 

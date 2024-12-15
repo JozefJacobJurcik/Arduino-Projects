@@ -18,7 +18,6 @@
 #include "thingProperties.h"
 #include "Menu.h"
 #include "Callmebot_ESP32.h"
-
 #include "Plant.h"
 #include "time.h"
 #include "TimeLib.h"
@@ -29,12 +28,12 @@
 const int LED_PIN = 14; // orange
 const int M1_PIN = 34; // yellow
 const int M2_PIN = 35; // orange
-const int SWITCH_PIN = 32; // purple
+const int SWITCH_PIN = 26; // purple
 const int R1_PIN = 25; // blue
 const int R2_PIN = 27; // green
 
 //objects
-Plant p1 = Plant(1 , R1_PIN , M2_PIN);
+Plant p1 = Plant(1 , R1_PIN , M1_PIN);
 Plant p2 = Plant(2 , R2_PIN , M2_PIN);
 
 Menu menu = Menu(0);
@@ -73,22 +72,22 @@ void setup() {
 
   
   pinMode(R1_PIN, OUTPUT);
-  digitalWrite(R1_PIN, LOW);
+  digitalWrite(R1_PIN, HIGH);
 
   pinMode(R2_PIN, OUTPUT);
-  digitalWrite(R2_PIN, LOW);
+  digitalWrite(R2_PIN, HIGH);
 
   pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW);
+  pinMode(M1_PIN, INPUT);
+  pinMode(M2_PIN, INPUT);
+  pinMode(SWITCH_PIN, INPUT);
   
 }
 
 void loop() {
   ArduinoCloud.update();
-
   
-  
-  
+  /* for testing removed todo
   //update time at 12 am
   if ((hour()==0) && (0 < minute() < 3)){
     updateTime();
@@ -106,7 +105,7 @@ void loop() {
       delay(60000); //1min
     }
   }
-   
+ --------------------------------------------  */ 
 }
 
 

@@ -48,7 +48,7 @@ void Menu::check(String userIn) {
 
     // default menu
     case 0:
-      printAnswer("Menu type:\n'settings' to show additional settings\n'volume' to set how much water each plant should get\n'mode' to switch between modes\n'now' to water a plant manually right now\n'rename' to rename the plants");
+      printAnswer("Menu type:\n'Settings' to show additional settings\n'Volume' to set how much water each plant should get\n'Mode' to switch between modes\n'Now' to water a plant manually right now\n'Rename' to rename the plants");
       //todo errors
       status = 1;
       d = 0;
@@ -68,11 +68,11 @@ void Menu::check(String userIn) {
     case 1:
 
       // because switch with a String doesnt work in c++ for some reason and im not bothered to do it with vectors
-      if (userIn == "settings") {
-        printAnswer("Type:\n'time' to set the current time\n'calibrate' to calibrate the moisture sensors\n'bedtime' to set a do-not-water time period\n'check' to check all sensors\n'error' to see the error message\nOr type 'back' to go back.");
+      if (userIn == "Settings") {
+        printAnswer("Type:\n'Time' to set the current time\n'Calibrate' to calibrate the moisture sensors\n'Bedtime' to set a do-not-water time period\n'Check' to check all sensors\n'Error' to see the error message\nOr type 'Back' to go back.");
         status = 6; 
 
-      }else if (userIn == "volume") {
+      }else if (userIn == "Volume") {
         reply = "Change amount of water for '";
         reply += p1.getName();
         reply += "' or '";
@@ -81,26 +81,26 @@ void Menu::check(String userIn) {
         printAnswer(reply);
         status = 5;
 
-      } else if (userIn == "mode") {
+      } else if (userIn == "Mode") {
         reply = "Change mode for '";
         reply += p1.getName();
         reply += "' or '";
         reply += p2.getName();
-        reply += "' ? or type 'back' to go back.";
+        reply += "' ? or type 'Back' to go back.";
         printAnswer(reply);
         status = 2;
 
-      } else if (userIn == "now") {
+      } else if (userIn == "Now") {
         reply = "Water '";
         reply += p1.getName();
         reply += "' or '";
         reply += p2.getName();
-        reply += "' right now? or type 'back' to go back.";
+        reply += "' right now? or type 'Back' to go back.";
         printAnswer(reply);
         status = 3;
 
-      } else if (userIn == "rename") {
-        printAnswer("Type 1 or 2 depending on what plant you want to rename. Or type 'back' to go back.");
+      } else if (userIn == "Rename") {
+        printAnswer("Type 1 or 2 depending on what plant you want to rename. Or type 'Back' to go back.");
         status = 4;
 
       } else {
@@ -114,20 +114,20 @@ void Menu::check(String userIn) {
     case 2:
       if (userIn == p1.getName()){
         selectedPlant = 1;
-        printAnswer("Water when:\ntimer runs out - 'timer'\nmoisture is reached - 'moisture'\ntimer runs out after a moisture is reached - 'hybrid'\nwhat comes first misture or timer - 'both'\nevery x days at a specified time - 'schedule' \n'back' to go back");
+        printAnswer("Water when:\ntimer runs out - 'Timer'\nmoisture is reached - 'Moisture'\ntimer runs out after a moisture is reached - 'Hybrid'\nwhat comes first misture or timer - 'Both'\nevery x days at a specified time - 'Schedule' \n'Back' to go back");
         status = 21;
 
 
       }else if (userIn == p2.getName()){
         selectedPlant = 2;
-        printAnswer("Water when:\ntimer runs out - 'timer'\nmoisture is reached - 'moisture'\ntimer runs out after a moisture is reached - 'hybrid'\nwhat comes first misture or timer - 'both'\n'back' to go back");
+        printAnswer("Water when:\ntimer runs out - 'Timer'\nmoisture is reached - 'Moisture'\ntimer runs out after a moisture is reached - 'Hybrid'\nwhat comes first misture or timer - 'Both'\nevery x days at a specified time - 'Schedule' \n'Back' to go back");
         status = 21;
 
-      }else if (userIn == "back"){
+      }else if (userIn == "Back"){
         status = 0;
         onMessageChange();
       } else {
-        printAnswer("Hmm...try again... or type 'back'");
+        printAnswer("Hmm...try again... or type 'Back'");
       }
 
     break;
@@ -135,31 +135,31 @@ void Menu::check(String userIn) {
     // reply after selecting what plant and what mode
     case 21:
 
-      if (userIn == "timer"){
+      if (userIn == "Timer"){
         printAnswer("How long between watterings? \n Type the time in this format: {number of days}d{hours}h{minutes}m \n e.g. : 2d15h30m ");
         status = 211;        
 
-      }else if (userIn == "moisture"){
+      }else if (userIn == "Moisture"){
         printAnswer("At what moisture % should watering occur? \n Type a number from 1 to 100 :");
         status = 212;
 
-      }else if (userIn == "hybrid"){
+      }else if (userIn == "Hybrid"){
         printAnswer("At what moisture % should a timer for how much time start? \n Type it in this format:\n{moisture % - from 1 to 100}p{number of days}d{hours}h{minutes}m \n e.g. : 75p0d2h30m");
         status = 213;
         
-      }else if (userIn == "both"){
+      }else if (userIn == "Both"){
         printAnswer("Set a timer and moisture treshold, whatever comes first will water the plant\nType it in this format:\n{moisture % - from 1 to 100}p{number of days}d{hours}h{minutes}m \n e.g. : 35p0d2h30m");
         status = 214;
         
-      }else if (userIn == "schedule"){
+      }else if (userIn == "Schedule"){
         printAnswer("Set what hour and every how many days the plant should be watered. \nType it in this format:\{every how many days}d{at this hour}h{minutes}m \n e.g. every 5 days at 15:30:\n 5d15h30m ");
         status = 215;
         
-      }else if (userIn == "back"){
+      }else if (userIn == "Back"){
         status = 0;
         onMessageChange();
       } else {
-        printAnswer("Hmm...try again... or type 'back'");
+        printAnswer("Hmm...try again... or type 'Back'");
       }
     break;
 
@@ -188,6 +188,7 @@ void Menu::check(String userIn) {
       reply += String(h);
       reply += " Minutes: ";
       reply += String(m);
+      reply += " ...type anything to go back to the menu";
       printAnswer(reply);
       status = 0;
 
@@ -218,7 +219,7 @@ void Menu::check(String userIn) {
 
       reply = "Moisture treshold is set to ";
       reply += String(p);
-      reply += " %";
+      reply += " % .. type anything to go back to the menu..";
       printAnswer(reply);
       status = 0;
 
@@ -255,7 +256,7 @@ void Menu::check(String userIn) {
       reply += String(h);
       reply += " Minutes: ";
       reply += String(m);
-      reply += " will start, after which the plant will be watered.";
+      reply += " will start, after which the plant will be watered...type anything to go back to menu";
       printAnswer(reply);
       status = 0;
 
@@ -291,7 +292,7 @@ void Menu::check(String userIn) {
       reply += String(h);
       reply += " Minutes: ";
       reply += String(m);
-      reply += " runs out.";
+      reply += " runs out...type anything to go back to menu";
       printAnswer(reply);
       status = 0;
 
@@ -326,6 +327,7 @@ void Menu::check(String userIn) {
       reply += String(h);
       reply += ":";
       reply += String(m);
+      reply += " ...type anything to go back to menu";
       printAnswer(reply);
       status = 0;
 
@@ -339,20 +341,21 @@ void Menu::check(String userIn) {
     //reply after selecting to water now and selecting a plant
     case 3:
       if (userIn == p1.getName()){
+        printAnswer("watering... after finishing press anything to go back");
         p1.waterPlant();
-        printAnswer("watering... press anything to go back");
         status = 0; 
 
       }else if (userIn == p2.getName()){
+        printAnswer("watering... after finishing press anything to go back");
         p2.waterPlant();
-        printAnswer("watering... press anything to go back");
+        
         status = 0;
 
-      } else if (userIn == "back"){
+      } else if (userIn == "Back"){
         status = 0;
         onMessageChange();
       } else {
-        printAnswer("Hmm...try again... or type 'back'");
+        printAnswer("Hmm...try again... or type 'Back'");
       }
     break; 
 
@@ -370,13 +373,13 @@ void Menu::check(String userIn) {
         onMessageChange();
 
       } else {
-        printAnswer("Hmm...try again... or type 'back' ");
+        printAnswer("Hmm...try again... or type 'Back' ");
       }
     break;
     
     // rename plant 1
     case 41:
-      if (userIn == "back" || userIn == p2.getName()){
+      if (userIn == "Back" || userIn == p2.getName()){
         printAnswer("invalid name, exiting...type anything to go back to menu");
         status = 0;
         
@@ -393,7 +396,7 @@ void Menu::check(String userIn) {
 
     //rename plant 2
     case 42:
-      if (userIn == "back" || userIn == p1.getName()){
+      if (userIn == "Back" || userIn == p1.getName()){
         printAnswer("invalid name, exiting... type anything to go back to menu");
         status = 0;
         
@@ -412,36 +415,36 @@ void Menu::check(String userIn) {
       
       if (userIn == p1.getName()){
         selectedPlant = 1;
-        printAnswer("For watering to a specified moisture level type 'moisure' and for setting a fixed time a pump should run type 'time'");
+        printAnswer("For watering to a specified moisture level type 'Moisure' and for setting a fixed time a pump should run type 'Time' or type 'Back'");
         status = 51; 
 
       }else if (userIn == p2.getName()){
         selectedPlant = 2;
-        printAnswer("For watering to a specified moisture level type 'moisure' and for setting a fixed time a pump should run type 'time' or type back.");
+        printAnswer("For watering to a specified moisture level type 'Moisure' and for setting a fixed time a pump should run type 'Time' or type 'Back'.");
         status = 51;
 
-      } else if (userIn == "back"){
+      } else if (userIn == "Back"){
         status = 0;
         onMessageChange();
       } else {
-        printAnswer("Hmm...try again... or type 'back' ");
+        printAnswer("Hmm...try again... or type 'Back' ");
       }
     break;
 
     case 51:
-      if (userIn == "moisture"){
+      if (userIn == "Moisture"){
         printAnswer("The pump should be running for x seconds then wait w seconds and repeat thet until p (in %) moisture is reached.\nSet x,w,p in this format {p}p{x}x{w}w\ne.g : 85p5x300w\n meaning: water for 5s wait 5 min and repeat until 85%");
         status = 511;
 
-      } else if (userIn == "time"){
+      } else if (userIn == "Time"){
         printAnswer("How long should the pump run in seconds?");
         status = 512;
 
-      } else if (userIn == "back"){
+      } else if (userIn == "Back"){
         status = 0;
         onMessageChange();
       } else {
-        printAnswer("Hmm...try again... or type 'back'");
+        printAnswer("Hmm...try again... or type 'Back'");
       }
 
     break;
@@ -453,17 +456,34 @@ void Menu::check(String userIn) {
         if (selectedPlant == 1){
           p1.isWateredByT = false;
           p1.setWaterByP(p,x,w);
+          reply = "Watering % was set to: ";
+          reply += String(p);
+          reply += "% pump time to: ";
+          reply += String(x);
+          reply += "s and wait time to: ";
+          reply += String(w);
+          reply += "s ... type anything to go back to the menu...";
+          printAnswer(reply);
 
         } else if (selectedPlant == 2){
           p2.isWateredByT = false;
           p2.setWaterByP(p,x,w);
+          reply = "Watering % was set to: ";
+          reply += String(p);
+          reply += "% pump time to: ";
+          reply += String(x);
+          reply += "s and wait time to: ";
+          reply += String(w);
+          reply += "s ... type anything to go back to the menu...";
+          printAnswer(reply);
 
         } else {
           printAnswer(" error in 511, exiting..type anything to go back to menu");
           status = 0;
           
         }
-
+      
+      status = 0;
       } else {
         printAnswer("wrong format could not set volume by moisture, type anything to go back to menu.");
         status = 0;
@@ -480,14 +500,21 @@ void Menu::check(String userIn) {
         if (selectedPlant == 1) {
           p1.isWateredByT = true;
           p1.setWaterByT(t);
+          reply = "Watering time was set to: ";
+          reply += String(t);
+          reply += "s ... type anything to go back to the menu...";
+          printAnswer(reply);
         } else if (selectedPlant == 2) {
           p2.isWateredByT = true;
           p2.setWaterByT(t);
+          reply = "Watering time was set to: ";
+          reply += String(t);
+          reply += "s ... type anything to go back to the menu...";
+          printAnswer(reply);
         } else {
           printAnswer("error in 512, type anything to go back to menu...");
-          status = 0;
-          
         }
+        status = 0;
       } else {
         printAnswer("wrong format could not set volume by time, type anything to go back to menu...");
         status = 0;
@@ -496,19 +523,19 @@ void Menu::check(String userIn) {
     break;
     
     case 6:
-      if (userIn == "time"){
+      if (userIn == "Time"){
         updateTime();
         delay(1000);
         reply = "Time was set to: ";
         reply += String(hour());
         reply += ":" ;
         reply += String(minute());
-        reply += " ... type anything to go back tomenu" ;
+        reply += " ... type anything to go back to the menu" ;
         printAnswer(reply);
         status = 0;
         
 
-      }else if (userIn == "calibrate"){
+      }else if (userIn == "Calibrate"){
         reply = "Do you want to calibrate the sensor of ";
         reply += p1.getName();
         reply += " or ";
@@ -518,7 +545,7 @@ void Menu::check(String userIn) {
         
         status = 61;
 
-      }else if (userIn == "check"){
+      }else if (userIn == "Check"){
         
         if(checkEnoughWater()){
           reply = "There is enough water in the tank\n"; 
@@ -540,11 +567,11 @@ void Menu::check(String userIn) {
         printAnswer(reply);
         status = 0;
 
-      }else if (userIn == "bedtime"){
+      }else if (userIn == "Bedtime"){
         printAnswer("Define bedtime in 24h format:\ne.g. : 00:30 - 10:25 would be 0h30m10hh25mm");
         status = 62;
 
-      }else if (userIn == "error"){
+      }else if (userIn == "Error"){
         
         if (p1.checkError() || p2.checkError()){
 
@@ -560,36 +587,36 @@ void Menu::check(String userIn) {
           status = 0;
         }
 
-      }else if (userIn == "back"){
+      }else if (userIn == "Back"){
         status = 0;
         onMessageChange();
 
       } else {
-        printAnswer("Hmm...try again... or type 'back'");
+        printAnswer("Hmm...try again... or type 'Back'");
       }
     break;
 
     case 61:
       if (userIn == p1.getName()){
         selectedPlant = 1;
-        printAnswer("Hold the sensor in open air and type 'ok' or 'back' to cancel");
+        printAnswer("Hold the sensor in open air and type 'Ok' (It takes ~5s to take a reading) or 'Back' to cancel");
         status = 611;
 
       }else if (userIn == p2.getName()){
         selectedPlant = 2;
-        printAnswer("Hold the sensor in open air and type 'ok' (It takes ~5s to take a reading) or 'back' to cancel");
+        printAnswer("Hold the sensor in open air and type 'Ok' (It takes ~5s to take a reading) or 'Back' to cancel");
         status = 611;
 
-      } else if (userIn == "back"){
+      } else if (userIn == "Back"){
         status = 0;
         onMessageChange();
       } else {
-        printAnswer("Hmm...try again... or type 'back'");
+        printAnswer("Hmm...try again... or type 'Back'");
       }
     break;
 
     case 611:
-      if (userIn == "ok"){
+      if (userIn == "Ok"){
         if (selectedPlant == 1){
           p1.setSensorAir();          
 
@@ -601,19 +628,19 @@ void Menu::check(String userIn) {
           status = 0;
 
         }
-        printAnswer("Put the sensor into Water and type 'ok' (It takes ~5s to take a reading) or 'back' to cancel");
+        printAnswer("Put the sensor into Water and type 'Ok' (It takes ~5s to take a reading) or 'Back' to cancel");
         status = 6111;
 
-      } else if (userIn == "back"){
+      } else if (userIn == "Back"){
         status = 0;
         onMessageChange();
       } else {
-        printAnswer("Hmm...try again... type 'ok' or type 'back'");
+        printAnswer("Hmm...try again... type 'ok' or type 'Back'");
       }
     break;
 
     case 6111:
-      if (userIn == "ok"){
+      if (userIn == "Ok"){
         if (selectedPlant == 1){
           p1.setSensorWater();          
 
@@ -628,11 +655,11 @@ void Menu::check(String userIn) {
         printAnswer("Sensor set! ... type anything to go back to menu.");
         status = 0;
 
-      } else if (userIn == "back"){
+      } else if (userIn == "Back"){
         status = 0;
         onMessageChange();
       } else {
-        printAnswer("Hmm...try again... type 'ok' or type 'back'");
+        printAnswer("Hmm...try again... type 'Ok' or type 'Back'");
       }
     break;
 
