@@ -1,34 +1,45 @@
+#include <Arduino.h>
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH110X.h>
-#include <SensirionI2CScd4x.h>
-#include <EC11.hpp>
 
+/* Uncomment the initialize the I2C address , uncomment only one, If you get a totally blank screen try the other*/
+#define i2c_Address 0x3c //initialize with the I2C addr 0x3C Typically eBay OLED's
+//#define i2c_Address 0x3d //initialize with the I2C addr 0x3D Typically Adafruit OLED's
 
-EC11 encoder;
-
-// OLED Display Configuration
-#define i2c_Address 0x3c // Typical eBay OLED's address
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
-#define OLED_RESET -1    // QT-PY / XIAO
-
-const uint8_t encoderPinA = 2;
-const uint8_t encoderPinB = 4;
-
-void pinDidChange() {
-  encoder.checkPins(digitalRead(encoderPinA), digitalRead(encoderPinB));
-}
-
-void prepare() {
-  attachInterrupt(digitalPinToInterrupt(encoderPinA), pinDidChange, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(encoderPinB), pinDidChange, CHANGE);
-}
-
-// Create display and SCD4x objects
+#define OLED_RESET -1   //   QT-PY / XIAO
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-SensirionI2CScd4x scd4x;
+
+
+#define NUMFLAKES 10
+#define XPOS 0
+#define YPOS 1
+#define DELTAY 2
+
+
+#define LOGO16_GLCD_HEIGHT 16
+#define LOGO16_GLCD_WIDTH  16
+static const unsigned char PROGMEM logo16_glcd_bmp[] =
+{ B00000000, B11000000,
+  B00000001, B11000000,
+  B00000001, B11000000,
+  B00000011, B11100000,
+  B11110011, B11100000,
+  B11111110, B11111000,
+  B01111110, B11111111,
+  B00110011, B10011111,
+  B00011111, B11111100,
+  B00001101, B01110000,
+  B00011011, B10100000,
+  B00111111, B11100000,
+  B00111111, B11110000,
+  B01111100, B11110000,
+  B01110000, B01110000,
+  B00000000, B00110000
+};
 
 const unsigned char smile_bit [] PROGMEM = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xf8, 0x00, 0x07, 0xfe, 0x00, 0x0f, 0xff, 0x00, 0x1f, 
@@ -130,8 +141,8 @@ void drawHumidity(float hum){
 
 void drawYesNo(bool yes){
   
-  uint8_t x = 46;
-  uint8_t y = 0;
+  int x = 46;
+  int y = 0;
   if(yes){
     y = 33;
   } else {
@@ -160,12 +171,12 @@ void drawQuestion(){
 
 void drawLoading(int t){
   
-  uint8_t x = 54;
-  uint8_t y = 20;
+  int x = 54;
+  int y = 20;
   int interval = t/96;
-  uint8_t current_bitmap = 1;
-  uint8_t counter = 0;
-  uint8_t counter_max = 10;
+  int current_bitmap = 1;
+  int counter = 0;
+  int counter_max = 10;
 
   for (int i = 0; i<96;i++){
     if (current_bitmap == 1 && counter == 0){
@@ -205,8 +216,8 @@ void drawLoading(int t){
 
 
 void drawCO2warning(int co2){
-  uint8_t x = 0;
-  uint8_t y = 0;
+  int x = 0;
+  int y = 0;
   display.setCursor(x,y);
   display.setTextSize(2);
   display.print("CO");
@@ -230,20 +241,16 @@ void drawCO2warning(int co2){
 }
 
 void drawCO2Scale(int co2){
-  uint8_t x = 50;
-  uint8_t y = 0;
+  int x = 50;
+  int y = 0;
   display.setCursor(x,y);
   display.setTextSize(2);
   display.print("CO");
   display.setTextSize(1);
   display.setCursor(x+24,y+9);
   display.print("2");
+  display.setCursor(x-12,y+23);
   display.setTextSize(2);
-  if(co2<1000){
-    display.setCursor(x-3,y+23);
-  }else{
-    display.setCursor(x-12,y+23);
-  }
   display.print(co2);
   display.setCursor(x+50,y+30);
   display.setTextSize(1);
@@ -261,180 +268,73 @@ void drawCO2Scale(int co2){
   display.display();
 }
 
+void setup()   {
 
-// Utility function to print hex values
-void printUint16Hex(uint16_t value) {
-    Serial.print(value < 4096 ? "0" : "");
-    Serial.print(value < 256 ? "0" : "");
-    Serial.print(value < 16 ? "0" : "");
-    Serial.print(value, HEX);
-}
+  Serial.begin(9600);
 
-// Utility function to print serial number
-void printSerialNumber(uint16_t serial0, uint16_t serial1, uint16_t serial2) {
-    Serial.print("Serial: 0x");
-    printUint16Hex(serial0);
-    printUint16Hex(serial1);
-    printUint16Hex(serial2);
-    Serial.println();
-}
+  // Show image buffer on the display hardware.
+  // Since the buffer is intialized with an Adafruit splashscreen
+  // internally, this will display the splashscreen.
 
-void setup() {
-    Serial.begin(115200); // TODO remove
-    delay(250); // Wait for serial to initialize TODO remove
-
-    pinMode(encoderPinA, INPUT_PULLUP);
-    pinMode(encoderPinB, INPUT_PULLUP);
+  delay(250); // wait for the OLED to power up
+  display.begin(i2c_Address, true); // Address 0x3C default
+ //display.setContrast (0); // dim display
+ 
+  display.display();
+  display.clearDisplay();
+  display.setTextColor(SH110X_WHITE);
+  /*
+  display.drawBitmap(0,44,smile_bit , 20, 20, SH110X_WHITE );
+  display.drawBitmap(108,44,skull_bit , 20, 20, SH110X_WHITE );
+  display.drawRect(25,49, 78, 10, SH110X_WHITE);
+  display.display();
+  */
   
-    prepare();
-
-    // Initialize Wire for I2C communication
-    Wire.begin();
-
-    // Initialize OLED Display
-    display.begin(i2c_Address, true);
+  drawExitQuestion();
+  drawYesNo(true);
+  
+  
+  
+  
+  for(int i = 0; i<128; i++){
     display.clearDisplay();
-    display.setTextSize(1);
-    display.setTextColor(SH110X_WHITE);
-    display.setCursor(0,0);
+    drawVOC(i);
+    delay(500);
+  }
 
-    // Initialize SCD4x CO2 Sensor
-    uint16_t error;
-    char errorMessage[256];
-    scd4x.begin(Wire);
+  
+  display.clearDisplay();
+  drawLoading(400);
+  delay(2000);
 
-    // Stop potentially previously started measurement
-    error = scd4x.stopPeriodicMeasurement();
-    if (error) {
-        display.println("Stop Measurement Error");
-        display.display();
-    }
+  display.clearDisplay();
+  drawLoading(1000);
+  delay(2000);
+  display.clearDisplay();
+  drawLoading(2000);
+  delay(2000);
+  display.clearDisplay();
+  drawLoading(4000);
+  delay(2000);
+  
+  drawQuestion();
+  drawYesNo(false);
+  delay(5000);
 
-    // Get and print serial number
-    uint16_t serial0, serial1, serial2;
-    error = scd4x.getSerialNumber(serial0, serial1, serial2);
-    if (error) {
-        display.println("Serial Num Error");
-        display.display();
-    } else {
-        // Display serial number on OLED
-        display.print("Serial: ");
-        display.print(serial0, HEX);
-        display.print(serial1, HEX);
-        display.println(serial2, HEX);
-        display.display();
-        delay(1000);
-    }
+  display.clearDisplay();
+  drawQuestion();
+  drawYesNo(true);
+  delay(5000);
 
-    // Start periodic measurement
-    error = scd4x.startPeriodicMeasurement();
-    if (error) {
-        display.println("Start Measure Error");
-        display.display();
-    }
+  display.clearDisplay();
+  drawQuestion();
+  drawYesNo(false);
+  
 
-    display.clearDisplay();
-    display.setCursor(0,0);
-    display.println("SCD4x Initialized");
-    display.display();
-    delay(1000);
 }
 
-static int encoder_value = 0;
-uint16_t error = 0;
-int co2_old = 0;
-float temperature_old = 0;
-float humidity_old = 0;
 
 void loop() {
-    if (error) {
-        display.println("Measurement Error");
-        display.display();
-        delay(1000);
-    }
-    
-    EC11Event e;
-    if (encoder.read(&e)) {
-    
-      if (e.type == EC11Event::StepCW) {
-        // Clock-wise.
-        encoder_value += e.count;
-      } else {
-        // Counter clock-wise.
-        encoder_value -= e.count;
-      }
-    }
-    
-    char errorMessage[256];
-    delay(100); // Wait 5 seconds between measurements
-    display.clearDisplay();
-
-    display.setCursor(0,0);
-      
-    switch(encoder_value) {
-      case 0:
-        drawCO2Scale(co2_old);
-      break;
-
-      case 1:
-        drawCO2warning(co2_old);
-      break;
-
-      case 2:
-          drawTemp(temperature_old);
-      break;
-
-      case 3:
-          drawHumidity(humidity_old);
-      break;
-
-      default:
-        drawYesNo(false);
-    }  
-      
-
-      /* 
-      if(encoder_value == 1){
-        drawCO2Scale(co2_old);
-      } else if (encoder_value == 2){
-        drawCO2warning(co2_old);
-      } else if (encoder_value == 3){
-        drawTemp(temperature_old);
-      } else if (encoder_value == 4){
-        drawHumidity(humidity_old);
-      } else {
-        drawYesNo(false);
-      }
-      */
-        
-        
-    
-
-    // Check if data is ready
-    bool isDataReady = false;
-    error = scd4x.getDataReadyFlag(isDataReady);
-    if (error) {
-        display.println("Data Ready Error");
-        display.display();
-        return;
-    }
-
-    if (!isDataReady) {
-
-        return;
-    }
-
-    // Read measurement
-    uint16_t co2 = 0;
-    float temperature = 0.0f;
-    float humidity = 0.0f;
-    error = scd4x.readMeasurement(co2, temperature, humidity);
-
-    co2_old = co2;
-    temperature_old = temperature;
-    humidity_old = humidity;
-
+  
 }
-
-
 
