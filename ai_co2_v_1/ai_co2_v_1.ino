@@ -16,14 +16,22 @@ EC11 encoder;
 
 const uint8_t encoderPinA = 2;
 const uint8_t encoderPinB = 4;
+const uint8_t encoderButton = 16;
+
+static int encoder_value = 0;
+uint16_t error = 0;
+int co2_old = 0;
+float temperature_old = 0;
+float humidity_old = 0;
+bool buttonState = false;
 
 void pinDidChange() {
   encoder.checkPins(digitalRead(encoderPinA), digitalRead(encoderPinB));
 }
 
 void prepare() {
-  attachInterrupt(digitalPinToInterrupt(encoderPinA), pinDidChange, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(encoderPinB), pinDidChange, CHANGE);
+  attachInterrupt(encoderPinA, pinDidChange, CHANGE);
+  attachInterrupt(encoderPinB, pinDidChange, CHANGE);
 }
 
 // Create display and SCD4x objects
@@ -64,6 +72,38 @@ const unsigned char fire_3_bit [] PROGMEM = {
 	0x02, 0x1c, 0x00, 0x01, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
+void encoderCheck(){
+  EC11Event e;
+      if (encoder.read(&e)) {
+
+        if (e.type == EC11Event::StepCW) {
+          // Clock-wise.
+          encoder_value += e.count;
+          
+        } else {
+          // Counter clock-wise.
+          encoder_value -= e.count;
+        }
+      }
+}
+
+void drawVOC(){
+  display.setTextSize(1);
+  display.setCursor(18,0);
+  display.print("Volatile Organic");
+  display.setCursor(40,10);
+  display.print("Compounds");
+  //display.drawFastVLine(64,0,64, SH110X_WHITE);
+  
+  uint8_t x = 48;
+  uint8_t y = 51;
+  display.setCursor(x+11,48);
+  display.print("OK");
+  display.drawTriangle( x, y, x-6, y +4, x-6, y-4, SH110X_WHITE);
+
+  display.display();
+}
+
 void drawExitQuestion(){
   display.setCursor(35,0);
   display.setTextSize(2);
@@ -71,11 +111,11 @@ void drawExitQuestion(){
   display.display();
 }
 
-void drawVOC(int voc){ // VOC needs to be normalized to a 0-128 range
+void drawVOCmeasurment(int voc){ // VOC needs to be normalized to a 0-128 range
   display.setTextSize(1);
-  display.setCursor(20,0);
+  display.setCursor(18,0);
   display.print("Volatile Organic");
-  display.setCursor(42,10);
+  display.setCursor(40,10);
   display.print("Compounds");
   display.drawCircle(64, 128, 105, SH110X_WHITE);
   int y = int(-sqrt(sq(105)-sq(voc-64))+128);
@@ -261,6 +301,68 @@ void drawCO2Scale(int co2){
   display.display();
 }
 
+void measuringVOC(){
+  buttonState = true;
+  delay(500);
+
+  while(buttonState){
+    display.clearDisplay();
+    drawVOCmeasurment(50); // todo feed real values
+    delay(100);
+    buttonState = digitalRead(encoderButton);
+  }
+
+}
+
+void theVOC(){
+  
+  display.clearDisplay();
+  drawQuestion();
+  drawYesNo(false);
+  delay(500); // so that we dont take the previous press
+  buttonState = true;
+
+  while(buttonState){
+    encoderCheck();
+    display.clearDisplay();
+    drawQuestion();
+    drawYesNo(encoder_value % 2 == 0);
+    delay(100);
+    buttonState = digitalRead(encoderButton);
+  }
+
+  if(encoder_value % 2 == 0){
+      drawLoading(20000); // todo change 
+      bool continueWhile = true;
+      while(continueWhile){
+        measuringVOC();
+        
+        //pressed button
+        display.clearDisplay();
+        drawExitQuestion();
+        drawYesNo(false);
+
+        delay(500); // so that we dont take the previous press
+        buttonState = true;
+
+        while(buttonState){
+          encoderCheck();
+          display.clearDisplay();
+          drawExitQuestion();
+          drawYesNo(encoder_value % 2 == 0);
+          delay(100);
+          buttonState = digitalRead(encoderButton);
+        }
+
+        if(encoder_value % 2 == 0){
+          continueWhile = false;
+        } 
+      
+      }
+
+  }
+
+}
 
 // Utility function to print hex values
 void printUint16Hex(uint16_t value) {
@@ -281,11 +383,12 @@ void printSerialNumber(uint16_t serial0, uint16_t serial1, uint16_t serial2) {
 
 void setup() {
     Serial.begin(115200); // TODO remove
-    delay(250); // Wait for serial to initialize TODO remove
+    delay(200); // Wait for serial to initialize TODO remove
 
     pinMode(encoderPinA, INPUT_PULLUP);
     pinMode(encoderPinB, INPUT_PULLUP);
-  
+    pinMode(encoderButton, INPUT);
+    
     prepare();
 
     // Initialize Wire for I2C communication
@@ -337,14 +440,8 @@ void setup() {
     display.setCursor(0,0);
     display.println("SCD4x Initialized");
     display.display();
-    delay(1000);
 }
 
-static int encoder_value = 0;
-uint16_t error = 0;
-int co2_old = 0;
-float temperature_old = 0;
-float humidity_old = 0;
 
 void loop() {
     if (error) {
@@ -352,47 +449,51 @@ void loop() {
         display.display();
         delay(1000);
     }
-    
-    EC11Event e;
-    if (encoder.read(&e)) {
-    
-      if (e.type == EC11Event::StepCW) {
-        // Clock-wise.
-        encoder_value += e.count;
-      } else {
-        // Counter clock-wise.
-        encoder_value -= e.count;
-      }
-    }
-    
-    char errorMessage[256];
-    delay(100); // Wait 5 seconds between measurements
-    display.clearDisplay();
 
+    if (encoder_value == 4){
+      for(uint8_t i = 0; i<20;i++){
+        buttonState = digitalRead(encoderButton);
+        if(buttonState == LOW){
+          theVOC(); // todo refresh rate flickers
+          delay(500);
+          encoder_value = 4;
+        }
+        delay(10);
+      }
+    } else {
+      delay(200);
+    }
+
+    encoderCheck();
+    display.clearDisplay();
     display.setCursor(0,0);
-      
+    
     switch(encoder_value) {
-      case 0:
+      case 0:          
         drawCO2Scale(co2_old);
       break;
 
-      case 1:
+      case 1:         
         drawCO2warning(co2_old);
       break;
 
       case 2:
-          drawTemp(temperature_old);
+        drawTemp(temperature_old);
       break;
 
       case 3:
-          drawHumidity(humidity_old);
+        drawHumidity(humidity_old);
+      break;
+
+      case 4:         
+        drawVOC();
       break;
 
       default:
-        drawYesNo(false);
-    }  
-      
+        drawYesNo(false); // TODO
+    }
 
+      
       /* 
       if(encoder_value == 1){
         drawCO2Scale(co2_old);
@@ -409,8 +510,7 @@ void loop() {
         
         
     
-
-    // Check if data is ready
+    char errorMessage[256];
     bool isDataReady = false;
     error = scd4x.getDataReadyFlag(isDataReady);
     if (error) {
@@ -420,7 +520,6 @@ void loop() {
     }
 
     if (!isDataReady) {
-
         return;
     }
 
@@ -431,7 +530,7 @@ void loop() {
     error = scd4x.readMeasurement(co2, temperature, humidity);
 
     co2_old = co2;
-    temperature_old = temperature;
+    temperature_old = temperature; // calibration function TODO
     humidity_old = humidity;
 
 }
