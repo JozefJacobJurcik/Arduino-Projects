@@ -8,22 +8,31 @@
 
 EC11 encoder;
 
+EC11Event e;
+
 // OLED Display Configuration
 #define i2c_Address 0x3c // Typical eBay OLED's address
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 #define OLED_RESET -1    // QT-PY / XIAO
 
-const uint8_t encoderPinA = 2;
-const uint8_t encoderPinB = 4;
-const uint8_t encoderButton = 16;
+const uint8_t encoderPinA = 4;
+const uint8_t encoderPinB = 16;
+const uint8_t encoderButton = 17;
+const uint8_t VocPin = 25;
+// pin 34 vcc for voc
+
 
 static int encoder_value = 0;
+int encoder_value_old = 0;
 uint16_t error = 0;
 int co2_old = 0;
 float temperature_old = 0;
 float humidity_old = 0;
 bool buttonState = false;
+
+const float max_volts = 3.3;
+const float max_analog_steps = 4095;
 
 void pinDidChange() {
   encoder.checkPins(digitalRead(encoderPinA), digitalRead(encoderPinB));
@@ -73,7 +82,7 @@ const unsigned char fire_3_bit [] PROGMEM = {
 };
 
 void encoderCheck(){
-  EC11Event e;
+
       if (encoder.read(&e)) {
 
         if (e.type == EC11Event::StepCW) {
@@ -327,8 +336,17 @@ void theVOC(){
     display.clearDisplay();
     drawQuestion();
     drawYesNo(encoder_value % 2 == 0);
-    delay(100);
-    buttonState = digitalRead(encoderButton);
+    
+    encoder_value_old = encoder_value;
+    while(encoder_value_old == encoder_value){
+      buttonState = digitalRead(encoderButton);
+      if(!buttonState){
+        break;
+      }
+      delay(100);
+      encoderCheck();
+    }
+
   }
 
   if(encoder_value % 2 == 0){
@@ -342,7 +360,7 @@ void theVOC(){
         drawExitQuestion();
         drawYesNo(false);
 
-        delay(500); // so that we dont take the previous press
+        delay(500);
         buttonState = true;
 
         while(buttonState){
@@ -350,8 +368,16 @@ void theVOC(){
           display.clearDisplay();
           drawExitQuestion();
           drawYesNo(encoder_value % 2 == 0);
-          delay(100);
-          buttonState = digitalRead(encoderButton);
+
+          encoder_value_old = encoder_value;
+          while(encoder_value_old == encoder_value){
+            buttonState = digitalRead(encoderButton);
+            if(!buttonState){
+              break;
+            }
+            delay(100);
+            encoderCheck();
+          }
         }
 
         if(encoder_value % 2 == 0){
@@ -388,6 +414,7 @@ void setup() {
     pinMode(encoderPinA, INPUT_PULLUP);
     pinMode(encoderPinB, INPUT_PULLUP);
     pinMode(encoderButton, INPUT);
+    pinMode(VocPin, INPUT);
     
     prepare();
 
